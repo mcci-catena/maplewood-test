@@ -1,0 +1,6 @@
+.vscode
+Release
+__vm
+*.vcxproj
+*.vcxproj.filters
+*.user
