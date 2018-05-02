@@ -28,9 +28,10 @@ cFlash_AT25SF081 gFlash;
 // SCK is D12, which is SERCOM1.3
 // MOSI is D11, which is SERCOM1.0
 // MISO is D10, which is SERCOM1.2
-//
+// Knowing that, you might be able to make sens of the following:
 SPIClass gSPI2(&sercom1, 10, 12, 11, SPI_PAD_0_SCK_3, SERCOM_RX_PAD_2);
 
+// other variables.
 bool fFlashFound;
 bool fFlashProgram;
 bool fFlashReadOnly;
@@ -41,6 +42,10 @@ void setup()
 	{
 	gCatena.begin();
 	gSPI2.begin();
+
+	// these *must* be after gSPI2.begin(), because the SPI
+	// library resets the pins to defaults as part of the begin()
+	// method.
 	pinPeripheral(10, PIO_SERCOM);
 	pinPeripheral(12, PIO_SERCOM);
 	pinPeripheral(11, PIO_SERCOM);
@@ -52,6 +57,8 @@ void setup()
 void loop()
 	{
         gCatena.poll();
+
+	// stop the flash test after 64 sectors.
         if (nFlash < 64)
                 {
                 bool fEndSector;
@@ -88,6 +95,10 @@ void flash_init(void)
 	fFlashReadOnly = false;
 	}
 
+// a fairly opaque flag-based state-machine, grabbed from some
+// other code. State variables are fFlashProgram, fFlashReadOnly and
+// flashAddress. Write a sector, read it back, erase it, and read
+// it back again. verification is by eye.
 void flash_test(bool &fEndSector)
 	{
 	uint32_t buffer32[4];
