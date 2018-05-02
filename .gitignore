@@ -1,6 +1,12 @@
+# don't save vscode settings
 .vscode
+
+# ignore things from Visual Micro
+.vs
+Debug
 Release
 __vm
 *.vcxproj
 *.vcxproj.filters
-*.user
+*.vcxproj.user
+*.sln
