@@ -7,7 +7,7 @@ Function:
 
 Copyright notice and License:
         See LICENSE file accompanying this project.
- 
+
 Author:
         Terry Moore, MCCI Corporation	April 2018
 
@@ -29,7 +29,7 @@ cFlash_AT25SF081 gFlash;
 // MOSI is D11, which is SERCOM1.0
 // MISO is D10, which is SERCOM1.2
 //
-SPIClass gSPI2(&sercom1, 10, 12, 11, SPI_PAD_0_SCK_3, SERCOM_RX_PAD_2); 
+SPIClass gSPI2(&sercom1, 10, 12, 11, SPI_PAD_0_SCK_3, SERCOM_RX_PAD_2);
 
 bool fFlashFound;
 bool fFlashProgram;
@@ -115,16 +115,16 @@ void flash_test(bool &fEndSector)
 		gFlash.read(flashAddress, buffer, 16);
 
 		gCatena.SafePrintf("FLASH 0x%06x: ", flashAddress);
-		for (uint8_t a = 0; a < 16; ++a) 
+		for (uint8_t a = 0; a < 16; ++a)
 			{
 			gCatena.SafePrintf("%02x ", buffer[a]);
 			}
-		gCatena.SafePrintf("\n"); 
+		gCatena.SafePrintf("\n");
 
 		flashAddress += gFlash.PAGE_SIZE;
 		if ((flashAddress & (gFlash.SECTOR_SIZE - 1)) == 0)
 			{
-			gCatena.SafePrintf("Erase sector\n"); 
+			gCatena.SafePrintf("Erase sector\n");
 			gFlash.eraseSector(flashAddress - gFlash.SECTOR_SIZE);
 			if (fFlashReadOnly)
 				{
