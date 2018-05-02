@@ -63,80 +63,81 @@ void loop()
 	}
 
 void flash_init(void)
-  {
-  gCatena.SafePrintf("Init FLASH\n");
+	{
+	gCatena.SafePrintf("Init FLASH\n");
 
-  if (gFlash.begin(&gSPI2, 5))
-    {
-    uint8_t ManufacturerId;
-    uint16_t DeviceId;
+	if (gFlash.begin(&gSPI2, 5))
+		{
+		uint8_t ManufacturerId;
+		uint16_t DeviceId;
 
-    gFlash.readId(&ManufacturerId, &DeviceId);
-    gCatena.SafePrintf(
-	"FLASH found, ManufacturerId=%02x, DeviceId=%04x\n",
-	ManufacturerId, DeviceId
-	);
-    gFlash.powerDown();
-    fFlashFound = true;
-    }
-  else
-    {
-    gCatena.SafePrintf("No FLASH found\n");
-    fFlashFound = false;
-    }
-  fFlashProgram = true;
-  fFlashReadOnly = false;
-  }
+		gFlash.readId(&ManufacturerId, &DeviceId);
+		gCatena.SafePrintf(
+			"FLASH found, ManufacturerId=%02x, DeviceId=%04x\n",
+			ManufacturerId, DeviceId
+			);
+		gFlash.powerDown();
+		fFlashFound = true;
+		}
+	else
+		{
+		gCatena.SafePrintf("No FLASH found\n");
+		fFlashFound = false;
+		}
+	fFlashProgram = true;
+	fFlashReadOnly = false;
+	}
 
 void flash_test(bool &fEndSector)
-  {
-  uint32_t buffer32[4];
-  uint8_t *buffer;
+	{
+	uint32_t buffer32[4];
+	uint8_t *buffer;
 
-  buffer = (uint8_t *) buffer32;
+	buffer = (uint8_t *) buffer32;
 
-  gFlash.powerUp();
-  fEndSector = false;
+	gFlash.powerUp();
+	fEndSector = false;
 
-  if (fFlashProgram && ! fFlashReadOnly)
-    {
-    fFlashProgram = false;
-    buffer32[0] = flashAddress;
-    buffer32[1] = 0;
-    buffer32[2] = 0x55555555u;
-    buffer32[3] = 0xaaaaaaaau;
-    if (! gFlash.program(flashAddress, buffer, 16))
-        gCatena.SafePrintf("** program at address %#06x failed **\n", flashAddress);
-    }
-  else
-    {
-    if (! fFlashReadOnly)
-      fFlashProgram = true;
-    gFlash.read(flashAddress, buffer, 16);
+	if (fFlashProgram && ! fFlashReadOnly)
+		{
+		fFlashProgram = false;
+		buffer32[0] = flashAddress;
+		buffer32[1] = 0;
+		buffer32[2] = 0x55555555u;
+		buffer32[3] = 0xaaaaaaaau;
+		if (! gFlash.program(flashAddress, buffer, 16))
+			gCatena.SafePrintf("** program at address %#06x failed **\n", flashAddress);
+		}
+	else
+		{
+		if (! fFlashReadOnly)
+		fFlashProgram = true;
+		gFlash.read(flashAddress, buffer, 16);
 
-    gCatena.SafePrintf("FLASH 0x%06x: ", flashAddress);
-    for (uint8_t a = 0; a < 16; ++a) {
-        gCatena.SafePrintf("%02x ", buffer[a]);
-    }
-    gCatena.SafePrintf("\n"); 
+		gCatena.SafePrintf("FLASH 0x%06x: ", flashAddress);
+		for (uint8_t a = 0; a < 16; ++a) 
+			{
+			gCatena.SafePrintf("%02x ", buffer[a]);
+			}
+		gCatena.SafePrintf("\n"); 
 
-    flashAddress += gFlash.PAGE_SIZE;
-    if ((flashAddress & (gFlash.SECTOR_SIZE - 1)) == 0)
-      {
-      gCatena.SafePrintf("Erase sector\n"); 
-      gFlash.eraseSector(flashAddress - gFlash.SECTOR_SIZE);
-      if (fFlashReadOnly)
-        {
-        fFlashReadOnly = false;
-        fEndSector = true;
-        }
-      else
-        {
-        fFlashReadOnly = true;
-        flashAddress -= gFlash.SECTOR_SIZE;
-        }
-      }
-    }
+		flashAddress += gFlash.PAGE_SIZE;
+		if ((flashAddress & (gFlash.SECTOR_SIZE - 1)) == 0)
+			{
+			gCatena.SafePrintf("Erase sector\n"); 
+			gFlash.eraseSector(flashAddress - gFlash.SECTOR_SIZE);
+			if (fFlashReadOnly)
+				{
+				fFlashReadOnly = false;
+				fEndSector = true;
+				}
+			else
+				{
+				fFlashReadOnly = true;
+				flashAddress -= gFlash.SECTOR_SIZE;
+				}
+			}
+		}
 
-  gFlash.powerDown();
-}
+	gFlash.powerDown();
+	}
