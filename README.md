@@ -26,8 +26,9 @@ The test program periodically reads the following:
 - BME280
 - light
 - Vbat
-- Registers from meters at addresses 1,2 at baudrate 19200
+- Registers from meters at Modbus addresses 1,2 at baudrate 19200
 
-It then formats and transmits a message using LoRaWAN.
+It then formats and transmits a message using LoRaWAN, providing LoRaWAN is provisioned.
 
-The polling
+The loop is running the standard Catena polling system, so the USB command input is live.
+
