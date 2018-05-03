@@ -14,7 +14,7 @@ Author:
 */
 
 // line number should be l# - 2, for ArduinoUnit compatibility
-// #line 17 "maplewood-test.ino"
+#line 17 "maplewood-test.ino"
 
 #include <Arduino.h>
 #include <Catena4470.h>
@@ -26,6 +26,8 @@ Author:
 
 #include <Adafruit_BME280.h>
 #include <BH1750.h>
+#include <ModbusRtu.h>
+#include <MCCI-WattNode-Modbus-Registers.h>
 
 #include <ArduinoUnit.h>
 
@@ -50,9 +52,24 @@ Adafruit_BME280 gBME280;
 // Knowing that, you might be able to make sens of the following:
 SPIClass gSPI2(&sercom1, 10, 12, 11, SPI_PAD_0_SCK_3, SERCOM_RX_PAD_2);
 
+/**
+ *  Modbus object declaration
+ *  u8id : node id = 0 for host, = 1..247 for device
+ *  u8txenpin : 0 for RS-232 and USB-FTDI 
+ *               or any pin number > 1 for RS-485
+ */
+Modbus gModbusHost(0, A4); // this is host; RX485.
+ModbusSerial<decltype(Serial1)> gModbusSerial(&Serial1);
+
+bool fFlashDone = false;
+
 void setup()
 	{
 	gCatena.begin();
+
+        // Test::exclude("*");
+        // Test::include("*modbus*");
+        // fFlashDone = true;
 
 	setup_platform();
 
@@ -98,7 +115,7 @@ void setup_platform()
 // platform tests
 //-----------------------------------------------------
 
-test(platform_05_check_platform_guid)
+test(2_platform_05_check_platform_guid)
 	{
         const CATENA_PLATFORM * const pPlatform = gCatena.GetPlatform();
 	const MCCIADK_GUID_WIRE m101Guid = GUID_HW_CATENA_4470_M101(WIRE);
@@ -110,7 +127,7 @@ test(platform_05_check_platform_guid)
 		);
 	}
 
-test(platform_10_check_syseui)
+test(2_platform_10_check_syseui)
 	{
         const Catena::EUI64_buffer_t *pSysEUI = gCatena.GetSysEUI();
 	static const Catena::EUI64_buffer_t ZeroEUI = { 0 };
@@ -127,7 +144,7 @@ test(platform_10_check_syseui)
 	gCatena.SafePrintf("\n");
 	}
 
-test(platform_20_lorawan_begin)
+test(2_platform_20_lorawan_begin)
 	{
 	bool fPassed = gLoRaWAN.begin(&gCatena);
 
@@ -137,7 +154,7 @@ test(platform_20_lorawan_begin)
 	assertTrue(fPassed, "gLoRaWAN.begin() failed");
 	}
 
-test(platform_30_init_lux) 
+test(2_platform_30_init_lux) 
 	{
 	uint32_t flags = gCatena.GetPlatformFlags();
 
@@ -147,7 +164,7 @@ test(platform_30_init_lux)
 	gBH1750.configure(BH1750_CONTINUOUS_HIGH_RES_MODE_2);
 	}
 
-test(platform_40_init_bme)
+test(2_platform_40_init_bme)
 	{
 	uint32_t flags = gCatena.GetPlatformFlags();
 
@@ -158,9 +175,30 @@ test(platform_40_init_bme)
 		);
 	}
 
-testing(platform_50_lux)
+constexpr uint8_t kModbusPowerOn = A3;
+
+void modbusPowerOn(void)
 	{
-	assertTestPass(platform_30_init_lux);
+        pinMode(kModbusPowerOn, OUTPUT);
+        digitalWrite(kModbusPowerOn, HIGH);
+	}
+
+test(2_platform_80_modbus_init)
+	{
+	uint32_t flags = gCatena.GetPlatformFlags();
+
+	assertNotEqual(flags & Catena::fHasRS485, 0);
+
+	modbusPowerOn();
+	gModbusHost.begin(&gModbusSerial, 19200);
+	
+	gModbusHost.setTimeOut(1000);
+	gModbusHost.setTxEnableDelay(50);
+	}
+
+testing(3_platform_50_lux)
+	{
+	assertTestPass(2_platform_30_init_lux);
 
 	const uint32_t interval = 2000;
 	const uint32_t ntries = 10;
@@ -184,9 +222,9 @@ testing(platform_50_lux)
  		}
 	}
 
-testing(platform_60_bme)
+testing(3_platform_60_bme)
 	{
-	assertTestPass(platform_40_init_bme);
+	assertTestPass(2_platform_40_init_bme);
 
 	const uint32_t interval = 2000;
 	const uint32_t ntries = 10;
@@ -215,6 +253,178 @@ testing(platform_60_bme)
 			pass();
 		}
 	}
+
+testing(3_platform_70_vBat)
+	{
+	const uint32_t interval = 2000;
+	const uint32_t ntries = 10;
+	static uint32_t lasttime, thistry;
+	uint32_t now = millis();
+
+	if ((int32_t)(now - lasttime) < interval)
+		/* skip */;
+	else
+		{
+		lasttime = now;
+
+		float vBat = gCatena.ReadVbat();
+		Serial.print("Vbat:   "); Serial.println(vBat);
+
+		assertMore(vBat, 3.1);
+		assertLess(vBat, 4.5);
+		if (++thistry >= ntries)
+			pass();
+		}
+	}
+
+const uint16_t kModel = 201;
+
+testing(3_platform_80_modbus)
+	{
+	assertTestPass(2_platform_80_modbus_init);
+	static enum : unsigned { stInitial, stDelay, stQuery, stPoll, stCheck, stNextDev, stNextTry } state = stInitial;
+	static unsigned iDevice;
+	static const uint8_t myDevices[] = { 1, 2 };
+	static uint32_t lastUptime[sizeof(myDevices)];
+	static uint32_t lastQueryStart;
+	static modbus_t telegram;
+	constexpr unsigned nRegisters = 
+				unsigned(WattNodeModbus::Register::Model_i16) -
+				unsigned(WattNodeModbus::Register::SerialNumber_i32) + 1
+				;
+	static uint16_t modbusRegisters[nRegisters];
+
+        const uint32_t interval = 500;
+        const uint32_t ntries = 10;
+        static uint32_t lasttime, thistry;
+        uint32_t now = millis();
+
+	switch (state)
+		{
+        case stInitial:
+                lasttime = now;
+                state = stDelay;
+                break;
+
+	// waiting for something to do
+	case stDelay:
+                if (! fFlashDone)
+                        /* skip */;
+		else if ((int32_t)(now - lasttime) < interval)
+			/* skip */;
+		else
+			{
+			lasttime = now;
+			state = stQuery;
+			}
+		break;
+
+	case stQuery:
+                // Serial.println(" stQuery: launch query");
+		telegram.u8id = myDevices[iDevice];
+		telegram.u8fct = MB_FC_READ_REGISTERS;
+		telegram.u16RegAdd = uint16_t(WattNodeModbus::Register::SerialNumber_i32) - 1;
+		telegram.u16CoilsNo = nRegisters;
+		telegram.au16reg = modbusRegisters;
+
+		gModbusHost.setLastError(ERR_SUCCESS);
+		assertEqual(gModbusHost.getLastError(), ERR_SUCCESS);
+
+		assertEqual(gModbusHost.query(telegram), 0);
+		state = stPoll;
+		break;
+
+	// polling
+	case stPoll:
+		{
+		auto iStatus = gModbusHost.poll();
+		
+		if (iStatus == 0)
+			/* return */;
+		else if (iStatus == 1)
+			{
+                        // Serial.println(" poll() succeeded");
+			assertEqual(gModbusHost.getLastError(), ERR_SUCCESS,
+				"non-zero error after successful poll(): " << gModbusHost.getLastError()
+				);
+			state = stCheck;
+			}
+		else
+			{
+                        // Serial.println(" poll() failed");
+			assertNotEqual(gModbusHost.getLastError(), ERR_SUCCESS,
+				"gModbusHost.poll() failed but error not set"
+				);
+			assertEqual(iStatus, -1, "iStatus not -1?");
+			assertNotEqual(iStatus, -1, "poll() failed: " << gModbusHost.getLastError());
+			}
+		}
+		break;
+
+	// looking at results
+	case stCheck:
+		{
+		uint32_t uSerial = modbusRegisters[0] + (modbusRegisters[1] << 16);
+		uint32_t uUptime = modbusRegisters[2] + (modbusRegisters[3] << 16);
+		uint16_t const uModel = modbusRegisters[nRegisters - 1];
+
+		gCatena.SafePrintf(" device %02x: sn=%-8u uptime=%-8u model=%u\n",
+				myDevices[iDevice], uSerial, uUptime, uModel
+				);
+
+		assertEqual(uModel, kModel, "Wrong model number: " << uModel);
+		assertNotEqual(uUptime, 0);
+
+		if (thistry > 0)
+			assertLessOrEqual(lastUptime[iDevice], uUptime);
+
+		lastUptime[iDevice] = uUptime;
+		state = stNextDev;
+		}
+
+	// selecting next device
+	case stNextDev:
+		if (++iDevice >= sizeof(myDevices))
+			{
+			iDevice = 0;
+			state = stNextTry;
+			}
+		else
+			state = stQuery;
+
+	// deciding if we're done
+	case stNextTry:
+		if (++thistry >= ntries)
+			pass();
+		else
+			state = stDelay;
+		break;
+
+	default:
+		assertTrue(false, "this shouldn't be possible");
+		}
+	}
+
+testing(3_platform_99)
+	{
+	if (checkTestDone(3_platform_50_lux) &&
+	    checkTestDone(3_platform_60_bme) &&
+	    checkTestDone(3_platform_70_vBat) &&
+            checkTestDone(3_platform_80_modbus))
+		{
+		assertTestPass(3_platform_50_lux);
+		assertTestPass(3_platform_60_bme);
+		assertTestPass(3_platform_70_vBat);
+                assertTestPass(3_platform_80_modbus);
+                pass();
+		}
+	}
+
+//-----------------------------------------------------
+//      Network tests
+//-----------------------------------------------------
+
+
 //-----------------------------------------------------
 //      Flash tests
 //-----------------------------------------------------
@@ -255,16 +465,16 @@ union sectorBuffer_t {
 	uint32_t dw[gFlash.SECTOR_SIZE / sizeof(uint32_t)];
 	} sectorBuffer;
 
-test(flash_00init)
+test(1_flash_00init)
 	{
 	assertTrue(flash_init(), "flash_init()");
 	pass();
 	}
 
-test(flash_01erase)
+test(1_flash_01erase)
 	{
 	// erase the sector.
-	assertTestPass(flash_00init);
+	assertTestPass(1_flash_00init);
 	assertTrue(gFlash.eraseSector(sectorAddress));
 	pass();
 	}
@@ -289,7 +499,7 @@ uint32_t flashBlankCheck(
 	return errs;
 	}
 
-test(flash_02blankcheck)
+test(1_flash_02blankcheck)
 	{
 	auto errs = flashBlankCheck();
 
@@ -312,7 +522,7 @@ void initBuffer(
 
 const uint32_t vStart = 0x55555555u;
 
-test(flash_03writepattern)
+test(1_flash_03writepattern)
 	{
 	// write a pattern
 	initBuffer(vStart, sectorBuffer);
@@ -322,7 +532,7 @@ test(flash_03writepattern)
 		);
 	}
 
-test(flash_04readpattern)
+test(1_flash_04readpattern)
 	{
 	// read the buffer
 	for (auto i = 0; i < sizeof(sectorBuffer.b); ++i)
@@ -356,11 +566,21 @@ test(flash_04readpattern)
 	pass();
 	}
 
-test(flash_05posterase)
+test(1_flash_05posterase)
 	{
 	assertTrue(gFlash.eraseSector(sectorAddress));
 	pass();
 	}
+
+testing(1_flash_99done)
+        {
+        if (checkTestDone(1_flash_05posterase))
+                {
+                fFlashDone = true;
+                assertTestPass(1_flash_05posterase);
+                pass();
+                }
+        }
 
 // boilerplate setup code
 bool flash_init(void)
