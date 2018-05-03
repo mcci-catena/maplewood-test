@@ -14,7 +14,7 @@ Author:
 */
 
 // line number should be l# - 2, for ArduinoUnit compatibility
-#line 17 "maplewood-test.ino"
+// #line 17 "maplewood-test.ino"
 
 #include <Arduino.h>
 #include <Catena4470.h>
@@ -423,6 +423,83 @@ testing(3_platform_99)
 //-----------------------------------------------------
 //      Network tests
 //-----------------------------------------------------
+
+// make sure we're provisioned.
+testing(4_lora_00_provisioned)
+	{
+	if (! checkTestDone(3_platform_99))
+		return;
+
+	assertTrue(gLoRaWAN.IsProvisioned(), "Not provisioned yet");
+	pass();
+	}
+
+// Send a confirmed uplink message
+Arduino_LoRaWAN::SendBufferCbFn uplinkDone;
+
+uint8_t noncePointer;
+bool gfSuccess;
+bool gfTxDone;
+void *gpCtx;
+
+uint8_t uplinkBuffer[] = { /* port */ 0x10, 0xCA, 0xFE, 0xBA,0xBE };
+
+const uint32_t kLoRaSendTimeout = 20 * 1000;
+
+uint32_t gTxStartTime;
+
+testing(4_lora_10_senduplink)
+	{
+	if (! checkTestDone(4_lora_00_provisioned))
+		return;
+
+	// send a confirmed message.
+	if (! checkTestPass(4_lora_00_provisioned))
+		{
+		skip();
+		return;
+		}
+
+	assertTrue(gLoRaWAN.SendBuffer(uplinkBuffer, sizeof(uplinkBuffer), uplinkDone, (void *) &noncePointer, true), "SendBuffer failed");
+	gTxStartTime = millis();
+	pass();
+	}
+
+void uplinkDone(void *pCtx, bool fSuccess)
+	{
+	gfTxDone = true;
+	gfSuccess = fSuccess;
+	gpCtx = pCtx;
+	}
+
+testing(4_lora_20_uplink_done)
+	{
+	if (checkTestSkip(4_lora_10_senduplink))
+		{
+		skip();
+		return;
+		}
+
+	if (!checkTestDone(4_lora_10_senduplink))
+		return;
+
+	if (!checkTestPass(4_lora_10_senduplink))
+		{
+		skip();
+		return;
+		}
+
+	if (! gfTxDone)
+		{
+		assertLess((int32_t)(millis() - gTxStartTime), kLoRaSendTimeout, "LoRa transmit timed out");
+
+		return;
+		}
+
+	assertTrue(gfSuccess, "Message uplink failed");
+	assertTrue(gpCtx == (void *)&noncePointer, "Context pointer was wrong on callback");
+	pass();
+	}
 
 
 //-----------------------------------------------------
