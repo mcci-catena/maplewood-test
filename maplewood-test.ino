@@ -444,7 +444,7 @@ void *gpCtx;
 
 uint8_t uplinkBuffer[] = { /* port */ 0x10, 0xCA, 0xFE, 0xBA,0xBE };
 
-const uint32_t kLoRaSendTimeout = 20 * 1000;
+const uint32_t kLoRaSendTimeout = 40 * 1000;
 
 uint32_t gTxStartTime;
 
