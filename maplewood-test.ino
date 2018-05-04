@@ -14,7 +14,7 @@ Author:
 */
 
 // line number should be l# - 2, for ArduinoUnit compatibility
-// #line 17 "maplewood-test.ino"
+#line 17 "maplewood-test.ino"
 
 #include <Arduino.h>
 #include <Catena4470.h>

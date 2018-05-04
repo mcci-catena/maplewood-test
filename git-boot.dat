@@ -1,0 +1,18 @@
+# git repository list for preparing to build this sketch
+# 
+# Convert these to https://$1/$2 or as git@$1:$2,
+# depending on the access method you desire.
+#
+# ideally we'd have a semantic version tag here, too.
+#
+github.com	mcci-catena/Catena-Arduino-Platform
+github.com	mcci-catena/catena-mcciadk
+github.com	mcci-catena/arduino-lorawan
+github.com	mcci-catena/arduino-lmic
+github.com	mcci-catena/Adafruit_FRAM_I2C
+github.com	mcci-catena/Adafruit_BME280_Library
+github.com	mcci-catena/Adafruit_Sensor
+github.com	mcci-catena/BH1750
+github.com	mcci-catena/Modbus-for-Arduino
+github.com	mcci-catena/MCCI-WattNode-Modbus
+github.com	mcci-catena/arduinounit
