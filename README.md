@@ -104,7 +104,21 @@ The loop is running the standard Catena polling system, so the USB command input
 
 ## What libraries do I need?
 
-Take a look at `git-boot.dat` in this directory. It lists all the libraris that are needed.
+Take a look at `git-boot.dat` in this directory. It lists all the libraries that are needed.
+
+However, for reference, here they are:
+
+- https://github.com/mcci-catena/Catena-Arduino-Platform
+- https://github.com/mcci-catena/catena-mcciadk
+- https://github.com/mcci-catena/arduino-lorawan
+- https://github.com/mcci-catena/arduino-lmic
+- https://github.com/mcci-catena/Adafruit_FRAM_I2C
+- https://github.com/mcci-catena/Adafruit_BME280_Library
+- https://github.com/mcci-catena/Adafruit_Sensor
+- https://github.com/mcci-catena/BH1750
+- https://github.com/mcci-catena/Modbus-for-Arduino
+- https://github.com/mcci-catena/MCCI-WattNode-Modbus
+- https://github.com/mcci-catena/arduinounit
 
 ## What configuration should I use with VS Code?
 
