@@ -63,6 +63,10 @@ ModbusSerial<decltype(Serial1)> gModbusSerial(&Serial1);
 
 bool fFlashDone = false;
 
+bool flash_init(void);
+void setup_flash(void);
+void setup_platform(void);
+
 void setup()
 	{
 	gCatena.begin();
