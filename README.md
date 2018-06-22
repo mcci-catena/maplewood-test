@@ -110,7 +110,7 @@ The loop is running the standard Catena polling system, so the USB command input
 
 For best LoRaWAN support, MCCI implemented our board-support package, availalable from https://github.com/mcci-catena/arduino-boards.
 
-- add https://github.com/mcci-catena/arduino-boards/raw/master/BoardManagerFiles/package_mcci_index.json to your "Additional Boards Manager URLs" in the Arduino IDE under `File>Preferences`. 
+- add https://github.com/mcci-catena/arduino-boards/raw/master/BoardManagerFiles/package_mcci_index.json to your "Additional Boards Manager URLs" in the Arduino IDE under `File>Preferences`.
 
 - Install support for the "MCCI Catena SAMD Boards" via `Tools>Board "whatever">Boards Manager...`
 
@@ -144,7 +144,7 @@ Here's what I use for SAMD builds.
         {
 	    "name": "Arduino",
 	    "defines": [
-		"ARDUINO=183" 
+		"ARDUINO=183"
 	    ],
             "includePath": [
 		"C:\\Users\\tmm\\AppData\\Local\\Arduino15\\packages\\mcci\\hardware\\samd\\1.0.1\\cores\\arduino",
