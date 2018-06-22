@@ -5,8 +5,10 @@
 - [What needs to be tested?](#what-needs-to-be-tested)
 - [What's our procedure?](#whats-our-procedure)
 - [How do we test a transmitter assembly?](#how-do-we-test-a-transmitter-assembly)
-- [What libraries do I need?](#what-libraries-do-i-need)
-- [What configuration should I use with VS Code?](#what-configuration-should-i-use-with-vs-code)
+- [Logistics for development](#logistics-for-development)
+	- [What setup do I need in the Arduino Board Manager to build this sketch?](#what-setup-do-i-need-in-the-arduino-board-manager-to-build-this-sketch)
+	- [What libraries do I need?](#what-libraries-do-i-need)
+	- [What configuration should I use with VS Code?](#what-configuration-should-i-use-with-vs-code)
 
 <!-- /TOC -->
 
@@ -102,7 +104,19 @@ The loop is running the standard Catena polling system, so the USB command input
 
 - Declare that the device passes.
 
-## What libraries do I need?
+## Logistics for development
+
+### What setup do I need in the Arduino Board Manager to build this sketch?
+
+For best LoRaWAN support, MCCI implemented our board-support package, availalable from https://github.com/mcci-catena/arduino-boards.
+
+- add https://github.com/mcci-catena/arduino-boards/raw/master/BoardManagerFiles/package_mcci_index.json to your "Additional Boards Manager URLs" in the Arduino IDE under `File>Preferences`. 
+
+- Install support for the "MCCI Catena SAMD Boards" via `Tools>Board "whatever">Boards Manager...`
+
+- Select board: "Catena 4470" via `Tools>Board` -- you'll have to scroll to the bottom of the list.
+
+### What libraries do I need?
 
 Take a look at `git-boot.dat` in this directory. It lists all the libraries that are needed.
 
@@ -120,7 +134,7 @@ However, for reference, here they are:
 - https://github.com/mcci-catena/MCCI-WattNode-Modbus
 - https://github.com/mcci-catena/arduinounit
 
-## What configuration should I use with VS Code?
+### What configuration should I use with VS Code?
 
 Here's what I use for SAMD builds.
 
