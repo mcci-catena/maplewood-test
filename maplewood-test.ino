@@ -37,6 +37,12 @@ using WattNodeModbus = McciWattNodeModbus::WattNode_WNC;
 
 using namespace McciCatena;
 
+/****************************************************************************\
+|
+|       Variables.
+|
+\****************************************************************************/
+
 Catena gCatena;
 cFlash_AT25SF081 gFlash;
 
@@ -69,6 +75,12 @@ bool fFlashDone = false;
 bool flash_init(void);
 void setup_flash(void);
 void setup_platform(void);
+
+/****************************************************************************\
+|
+|       Code
+|
+\****************************************************************************/
 
 void setup()
 	{
