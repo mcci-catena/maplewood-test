@@ -27,7 +27,11 @@ Author:
 #include <Adafruit_BME280.h>
 #include <BH1750.h>
 #include <ModbusRtu.h>
+
 #include <MCCI-WattNode-Modbus-Registers.h>
+// check version of MCCI-WattNode-Modbus library
+static_assert(McciWattNodeModbus::kVersion >= McciWattNodeModbus::makeVersion(0,2,0,0), "please update your MCCI-WattNode-Modbus library");
+using WattNodeModbus = McciWattNodeModbus::WattNode_WNC;
 
 #include <ArduinoUnit.h>
 
