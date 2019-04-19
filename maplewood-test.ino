@@ -17,7 +17,7 @@ Author:
 #line 17 "maplewood-test.ino"
 
 #include <Arduino.h>
-#include <Catena4470.h>
+#include <Catena.h>
 #include <Catena_led.h>
 #include <SPI.h>
 #include <wiring_private.h>
@@ -36,7 +36,6 @@ using WattNodeModbus = McciWattNodeModbus::WattNode_WNC;
 #include <ArduinoUnit.h>
 
 using namespace McciCatena;
-using Catena = Catena4470;
 
 Catena gCatena;
 cFlash_AT25SF081 gFlash;
