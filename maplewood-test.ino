@@ -64,7 +64,7 @@ SPIClass gSPI2(&sercom1, 10, 12, 11, SPI_PAD_0_SCK_3, SERCOM_RX_PAD_2);
 /**
  *  Modbus object declaration
  *  u8id : node id = 0 for host, = 1..247 for device
- *  u8txenpin : 0 for RS-232 and USB-FTDI 
+ *  u8txenpin : 0 for RS-232 and USB-FTDI
  *               or any pin number > 1 for RS-485
  */
 Modbus gModbusHost(0, A4); // this is host; RX485.
@@ -109,7 +109,7 @@ void setup_platform()
 		yield();
 
         Serial.print(
-                "\n" 
+                "\n"
                 "-------------------------------------------------------------------------------\n"
                 "This is the Maplewood test program.\n"
                 "Enter 'help' for a list of commands.\n"
@@ -173,7 +173,7 @@ test(2_platform_20_lorawan_begin)
 	assertTrue(fPassed, "gLoRaWAN.begin() failed");
 	}
 
-test(2_platform_30_init_lux) 
+test(2_platform_30_init_lux)
 	{
 	uint32_t flags = gCatena.GetPlatformFlags();
 
@@ -210,7 +210,7 @@ test(2_platform_80_modbus_init)
 
 	modbusPowerOn();
 	gModbusHost.begin(&gModbusSerial, 19200);
-	
+
 	gModbusHost.setTimeOut(1000);
 	gModbusHost.setTxEnableDelay(50);
 	}
@@ -307,7 +307,7 @@ testing(3_platform_80_modbus)
 	static uint32_t lastUptime[sizeof(myDevices)];
 	static uint32_t lastQueryStart;
 	static modbus_t telegram;
-	constexpr unsigned nRegisters = 
+	constexpr unsigned nRegisters =
 				unsigned(WattNodeModbus::Register::Model_i16) -
 				unsigned(WattNodeModbus::Register::SerialNumber_i32) + 1
 				;
@@ -357,7 +357,7 @@ testing(3_platform_80_modbus)
 	case stPoll:
 		{
 		auto iStatus = gModbusHost.poll();
-		
+
 		if (iStatus == 0)
 			/* return */;
 		else if (iStatus == 1)
@@ -525,7 +525,7 @@ testing(4_lora_20_uplink_done)
 //      Flash tests
 //-----------------------------------------------------
 void setup_flash()
-	{	
+	{
 	gSPI2.begin();
 
 	// these *must* be after gSPI2.begin(), because the SPI
@@ -537,7 +537,7 @@ void setup_flash()
 	}
 
 void logMismatch(
-	uint32_t addr, 
+	uint32_t addr,
 	uint8_t expect,
 	uint8_t actual
 	)
@@ -608,8 +608,8 @@ void initBuffer(
 	sectorBuffer_t &buffer = sectorBuffer
 	)
 	{
-	for (auto i = 0; 
-	     i < sizeof(buffer.dw) / sizeof(buffer.dw[0]); 
+	for (auto i = 0;
+	     i < sizeof(buffer.dw) / sizeof(buffer.dw[0]);
 	     ++i, v = vNext(v))
 	     	{
 		buffer.dw[i] = v;
@@ -643,8 +643,8 @@ test(1_flash_04readpattern)
 	v.dw = vStart;
 
 	auto errs = 0;
-	for (auto i = 0; 
-	     i < sizeof(sectorBuffer.dw) / sizeof(sectorBuffer.dw[0]); 
+	for (auto i = 0;
+	     i < sizeof(sectorBuffer.dw) / sizeof(sectorBuffer.dw[0]);
 	     ++i, v.dw = vNext(v.dw))
 		{
 		vTest.dw = sectorBuffer.dw[i];
