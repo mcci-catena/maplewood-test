@@ -67,7 +67,7 @@ SPIClass gSPI2(&sercom1, 10, 12, 11, SPI_PAD_0_SCK_3, SERCOM_RX_PAD_2);
  *  u8txenpin : 0 for RS-232 and USB-FTDI
  *               or any pin number > 1 for RS-485
  */
-Modbus gModbusHost(0, A4); // this is host; RX485.
+::Modbus gModbusHost(0, A4); // this is host; RX485.
 ModbusSerial<decltype(Serial1)> gModbusSerial(&Serial1);
 
 bool fFlashDone = false;
